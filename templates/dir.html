@@ -1,0 +1,40 @@
+$def with (dirs, files)
+<!DOCTYPE html> 
+<html>
+<head>
+  <title>Browse</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.css" />
+  <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+  <script src="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.js"></script>
+</head>
+
+<body>
+  <div data-role="header">
+    <h1>Browse</h1>
+  </div>
+
+  <div data-role="content">
+
+$if len(dirs)>0:
+  <h1>Directories</h1>
+  <ul data-role="listview">
+  $for d in dirs
+    <li><a href="$('/dir/'+d)">$os.path.basename(d)</a></li>
+  </ul>
+
+$if len(files)>0:
+  <h1>Files</h1>
+  <ul data-role="listview">
+  $for f in files
+    <li><a href="$('/play/'+f)">$os.path.basename(f)</a></li>
+  </ul>
+
+  </div>
+
+  <div data-role="footer">
+    <h4>PISIDPlay</h4>
+  </div>
+
+</body>
+</html>
