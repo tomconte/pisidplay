@@ -20,7 +20,7 @@ $if len(dirs)>0:
   <h1>Directories</h1>
   <ul data-role="listview">
   $for d in dirs
-    <li><a href="$('/dir/'+d)">$os.path.basename(d)</a></li>
+    <li><a href="$('/dir/'+d)">$os.path.basename(d.rstrip('/'))</a></li>
   </ul>
 
 $if len(files)>0:
