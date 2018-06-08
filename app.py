@@ -1,4 +1,5 @@
 import os
+import subprocess
 import web
 from azure.storage.common import CloudStorageAccount
 from azure.storage.blob import BlobPrefix
@@ -6,6 +7,12 @@ from azure.storage.blob import BlobPrefix
 storage_account='hvsc'
 storage_key='dgvR+Z3qoY0sRYjHfOkWDMG7oSrBjLoBgVE4DhAkaRtSjORjBajJc+ddWS4z47N9RV6JWg9UO5Bh0R5Xkek9Gw=='
 storage_container='hvsc'
+
+# Use sidplayfp on macOS, sidplay2 on Linux
+if subprocess.check_output('uname').startswith('Darwin'):
+  sid_player='sidplayfp'
+else:
+  sid_player='sidplay2'
 
 urls = (
   "/", "main",
@@ -52,6 +59,11 @@ class dir:
 
 class play:
   def GET(self, file):
+    return render.play(file)
+
+class stream:
+  def GET(self, file):
+    web.header('Content-type','audio/x-wav')
     sid_file = os.path.basename(file)
     wav_file = os.path.splitext(sid_file)[0] + ".wav"
     if not os.path.isfile(wav_file):
@@ -59,13 +71,7 @@ class play:
       blob_service.get_blob_to_path(storage_container, file, sid_file)
       # Convert SID to WAV
       print "generating " + wav_file
-      os.spawnlp(os.P_WAIT, 'sidplay2', 'sidplay2', '-w' + wav_file, sid_file)
-    return render.play(wav_file)
-
-class stream:
-  def GET(self, file):
-    web.header('Content-type','audio/x-wav')
-    wav_file = os.path.basename(file)
+      retval = subprocess.call([sid_player, sid_player, '-w' + wav_file, sid_file])
     return open(wav_file, 'rb').read()
 
 if __name__ == "__main__":
