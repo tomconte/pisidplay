@@ -1,8 +1,10 @@
 import os
 import subprocess
+import json
 import web
 from azure.storage.common import CloudStorageAccount
 from azure.storage.blob import BlobPrefix
+from azure.storage.blob import ContentSettings
 
 storage_account='hvsc'
 storage_key='dgvR+Z3qoY0sRYjHfOkWDMG7oSrBjLoBgVE4DhAkaRtSjORjBajJc+ddWS4z47N9RV6JWg9UO5Bh0R5Xkek9Gw=='
@@ -18,7 +20,7 @@ urls = (
   "/", "main",
   "/dir/(.*)", "dir",
   "/play/(.+)", "play",
-  "/stream/(.+)", "stream"
+  "/convert/(.+)", "convert"
 )
 
 app = web.application(urls, globals())
@@ -50,7 +52,8 @@ class dir:
       if isinstance(f, BlobPrefix):
         dirs.append(f.name)
       else:
-        files.append(f.name)
+        if f.name.endswith('.sid'):
+          files.append(f.name)
     
     dirs.sort()
     files.sort()
@@ -61,18 +64,30 @@ class play:
   def GET(self, file):
     return render.play(file)
 
-class stream:
+class convert:
   def GET(self, file):
-    web.header('Content-type','audio/x-wav')
+    blob_path = os.path.dirname(file)
     sid_file = os.path.basename(file)
     wav_file = os.path.splitext(sid_file)[0] + ".wav"
-    if not os.path.isfile(wav_file):
-      # Download file from Blob Storage
+    wav_blob = os.path.join(blob_path, wav_file)
+    wav_url = blob_service.protocol + "://"  + blob_service.primary_endpoint+ "/" + storage_container + "/" + wav_blob
+    # If the wav blob does not exist
+    if not blob_service.exists(storage_container, wav_blob):
+      # Download sid file from Blob Storage
       blob_service.get_blob_to_path(storage_container, file, sid_file)
-      # Convert SID to WAV
-      print "generating " + wav_file
+      # Convert sid to wav
+      print "Generating " + wav_file + " ..."
       retval = subprocess.call([sid_player, sid_player, '-w' + wav_file, sid_file])
-    return open(wav_file, 'rb').read()
+      # TODO: check return value
+      # Upload the wav file to 
+      blob_service.create_blob_from_path(storage_container, wav_blob, wav_file,
+        content_settings=ContentSettings(content_type='audio/wav'))
+      # Delete the temp files: sid & wav
+      # TODO: exceptions, race conditions etc.
+      os.remove(sid_file)
+      os.remove(wav_file)
+    web.header("Location", wav_url)
+    return wav_url
 
 if __name__ == "__main__":
   app.run()

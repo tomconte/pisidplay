@@ -27,7 +27,7 @@ $if len(files)>0:
   <h1>Files</h1>
   <ul data-role="listview">
   $for f in files
-    <li><a href="$('/play/'+f)">$os.path.basename(f)</a></li>
+    <li><a href="$('/play/'+f)" data-ajax="false">$os.path.basename(f)</a></li>
   </ul>
 
   </div>

@@ -7,6 +7,25 @@ $def with (file)
   <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
   <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
   <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+  <script>
+    jQuery(document).ready(function() {
+      // Launch the conversion of the sid file
+      jQuery.ajax({
+        url: '/convert/$file'
+      }).done(function(data, textStatus, jqXHR) {
+        // Retrieve the Location of the converted wav file
+        var l = jqXHR.getResponseHeader('Location');
+        // Update message
+        jQuery('#download').text('Converted wav file: ' + l);
+        // Update controls
+        var audio = jQuery('#audio');
+        audio[0].src = l;
+        audio[0].pause();
+        audio[0].load();
+        audio[0].oncanplaythrough = audio[0].play();
+      });
+    });
+  </script>
 </head>
 
 <body>
@@ -20,9 +39,9 @@ $def with (file)
 
     <p>$file</p>
 
-    <audio controls autoplay>
-      <source src="/stream/$file" type="audio/x-wav" />
-    </audio>
+    <p id="download">Please wait, converting the file...</p>
+
+    <audio id="audio" controls autoplay></audio>
 
   </div>
 
